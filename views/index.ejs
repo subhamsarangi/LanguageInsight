@@ -2,19 +2,37 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>States of India</title>
   <meta name="description" content="Census data by state for India. Click a state to view detailed language statistics.">
-  <!-- Include your CSS here -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <!-- Google Fonts - SF Pro Text lookalike -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>States of India</h1>
-  <ul>
-    <% states.forEach(state => { %>
-      <li>
-        <a href="/state/<%= state.slug %>"><%= state.name %></a>
-      </li>
-    <% }) %>
-  </ul>
+  <div class="container">
+    <h1>Linguistic diversity across regions</h1>
+    <h2>States of India</h2>
+    <hr>
+    <div class="row">
+      <% states.forEach(state => { %>
+        <div class="col-sm-3 mb-4">
+          <div class="state-box" style="background-image: url('/images/<%= state.slug %>.jpg');">
+            <a href="/state/<%= state.slug %>" class="state-link">
+              <h3 class="state-name"><%= state.name %></h3>
+            </a>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+  
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

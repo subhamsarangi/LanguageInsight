@@ -1,15 +1,146 @@
 [
-    {
-      "name": "Odisha",
-      "excelFile": "excel/DDW-C16-STMT-MDDS-2100.XLSX"
-    },
-    {
-      "name": "West Bengal",
-      "excelFile": "excel/WEST_BENGAL.xlsx"
-    },
-    {
-      "name": "Tamil Nadu",
-      "excelFile": "excel/TAMIL_NADU.xlsx"
-    }
-  ]
-  
+  {
+    "name": "Andaman and Nicobar Islands",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-3500.XLSX"
+  },
+  {
+    "name": "Andhra Pradesh",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2800.XLSX"
+  },
+  {
+    "name": "Arunachal Pradesh",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1200.XLSX"
+  },
+  {
+    "name": "Assam",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1800.XLSX"
+  },
+  {
+    "name": "Bihar",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1000.XLSX"
+  },
+  {
+    "name": "Chandigarh",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0400.XLSX"
+  },
+  {
+    "name": "Chhattisgarh",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2200.XLSX"
+  },
+  {
+    "name": "Dadra & Nagar Haveli",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2600.XLSX"
+  },
+  {
+    "name": "Daman & Diu",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2500.XLSX"
+  },
+  {
+    "name": "Goa",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-3000.XLSX"
+  },
+  {
+    "name": "Gujarat",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2400.XLSX"
+  },
+  {
+    "name": "Haryana",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0600.XLSX"
+  },
+  {
+    "name": "Himachal Pradesh",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0200.XLSX"
+  },
+  {
+    "name": "Jammu and Kashmir",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0100.XLSX"
+  },
+  {
+    "name": "Jharkhand",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2000.XLSX"
+  },
+  {
+    "name": "Karnataka",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2900.XLSX"
+  },
+  {
+    "name": "Kerala",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-3200.XLSX"
+  },
+  {
+    "name": "Lakshadweep",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-3100.XLSX"
+  },
+  {
+    "name": "Madhya Pradesh",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2300.XLSX"
+  },
+  {
+    "name": "Maharashtra",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2700.XLSX"
+  },
+  {
+    "name": "Manipur",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1400.XLSX"
+  },
+  {
+    "name": "Meghalaya",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1700.XLSX"
+  },
+  {
+    "name": "Mizoram",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1500.XLSX"
+  },
+  {
+    "name": "Nagaland",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1300.XLSX"
+  },
+  {
+    "name": "NCT of Delhi",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0700.XLSX"
+  },
+  {
+    "name": "Odisha",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-2100.XLSX"
+  },
+  {
+    "name": "Puducherry",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-3400.XLSX"
+  },
+  {
+    "name": "Punjab",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0300.XLSX"
+  },
+  {
+    "name": "Rajasthan",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0800.XLSX"
+  },
+  {
+    "name": "Sikkim",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1100.XLSX"
+  },
+  {
+    "name": "Tamil Nadu",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-3300.XLSX"
+  },
+  {
+    "name": "Tripura",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1600.XLSX"
+  },
+  {
+    "name": "Uttar Pradesh",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0900.XLSX"
+  },
+  {
+    "name": "Uttarakhand",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0500.XLSX"
+  },
+  {
+    "name": "West Bengal",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-1900.XLSX"
+  },
+  {
+    "name": "India",
+    "excelFile": "excel/DDW-C16-STMT-MDDS-0000.XLSX"
+  }
+]
