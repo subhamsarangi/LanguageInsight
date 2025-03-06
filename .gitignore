@@ -1,0 +1,4 @@
+meta.txt
+.env
+node_modules/
+dist/
