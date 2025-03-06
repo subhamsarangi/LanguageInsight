@@ -52,6 +52,12 @@
       width: auto;
       display: inline-block;
     }
+    /* Cursor pointer for clickable area name */
+    .area-info {
+      cursor: pointer;
+      text-decoration: underline;
+      color: #007bff;
+    }
   </style>
 </head>
 <body>
@@ -96,6 +102,29 @@
       </table>
     </div>
   </div>
+
+  <!-- Modal for Area Details -->
+  <div class="modal fade" id="areaModal" tabindex="-1" role="dialog" aria-labelledby="areaModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="areaModalLabel">Area Details</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+           <p><strong>Area Name:</strong> <span id="modalAreaName"></span></p>
+           <p><strong>Area Type:</strong> <span id="modalAreaType"></span></p>
+           <p><strong>State Name:</strong> <span id="modalStateName"></span></p>
+           <p><strong>District Name:</strong> <span id="modalDistrictName"></span></p>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+         </div>
+      </div>
+    </div>
+  </div>
   
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -108,7 +137,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     $(document).ready(function() {
-      // Disable buttons initially
+      // Initially disable buttons
       $("#downloadJson").prop("disabled", true);
       $("#downloadExcel").addClass("disabled");
 
@@ -118,6 +147,10 @@
       // Global variables for table data
       var allTableData = [];
       var filteredTableData = [];
+      
+      // Mapping objects for names (from codes)
+      var stateMapping = {};    // key: state code (col B), value: state name (col E) for State rows
+      var districtMapping = {}; // key: district code (col C), value: district name (col E) for District rows
 
       // Function to initialize DataTable with pagination size 20
       function initializeDataTable() {
@@ -142,10 +175,10 @@
         filteredTableData = allTableData.filter(function(item) {
           return filterTypes.indexOf(item.type) !== -1;
         });
-        // Append rows for each filtered item.
-        filteredTableData.forEach(function(item) {
+        // Append rows for each filtered item. The area name is now a clickable link.
+        filteredTableData.forEach(function(item, index) {
           var rowHtml = "<tr>" +
-            "<td>" + item.area + "</td>" +
+            "<td><a href='#' class='area-info' data-index='" + index + "'>" + item.area + "</a></td>" +
             "<td>" + item.population + "</td>" +
             "<td>" + item.languagesCount + "</td>" +
             "<td>" + item.L1 + "</td>" +
@@ -176,32 +209,47 @@
          // Convert the sheet to JSON with rows as arrays.
          var jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
          
-         // Initialize a grouping object by area.
+         // Object to group rows by area name.
          var results = {}; 
-         // Assume the first row is header, so data starts at index 1.
+         // Process rows (assume the first row is header, so start at index 1).
          for (var i = 1; i < jsonData.length; i++) {
            var row = jsonData[i];
-           // Column indexes:
-           // Column C (index 2) and D (index 3) for area type
-           // Column E (index 4) for area name,
-           // Column G (index 6) for mother tongue,
-           // Column H (index 7) for count.
-           var area = row[4];
+           // Expected columns:
+           // Column B (index 1): State Code
+           // Column C (index 2): District Code
+           // Column D (index 3): Subdistrict Code
+           // Column E (index 4): Area Name
+           // Column G (index 6): Mother Tongue (with a numeric prefix)
+           // Column H (index 7): Count
+           var stateCode = row[1] || "";
+           var districtCode = row[2] ? row[2].toString() : "";
+           var subdistrictCode = row[3] ? row[3].toString() : "";
+           var areaName = row[4];
            var languageRaw = row[6];
            var count = parseInt(row[7]) || 0;
            
-           if (!area || !languageRaw) continue;
+           if (!areaName || !languageRaw) continue;
            
-           // Determine area type using columns C and D.
-           var colC = row[2];
-           var colD = row[3];
+           // Determine area type:
+           // - State: District Code == "000" and Subdistrict Code == "00000"
+           // - District: Subdistrict Code == "00000" (but not State)
+           // - Subdistrict: otherwise.
            var areaType = "";
-           if(colC === "000" && colD === "00000") {
+           if(districtCode === "000" && subdistrictCode === "00000") {
              areaType = "State";
-           } else if(colD === "00000") {
+           } else if(subdistrictCode === "00000") {
              areaType = "District";
            } else {
              areaType = "Subdistrict";
+           }
+           
+           // Build mapping for names:
+           if(areaType === "State") {
+             // For state rows, areaName holds the state name.
+             stateMapping[stateCode] = areaName;
+           } else if(areaType === "District") {
+             // For district rows, areaName holds the district name.
+             districtMapping[districtCode] = areaName;
            }
            
            // Only include rows where language starts with a digit and does not include "Others"
@@ -209,25 +257,26 @@
              continue;
            }
            
-           // Remove the number prefix. For example, "1 Assamese" becomes "Assamese".
+           // Remove the number prefix. E.g., "1 Assamese" becomes "Assamese".
            var langMatch = languageRaw.match(/^\d+\s+(.*)/);
            var language = langMatch ? langMatch[1].trim() : languageRaw.trim();
            
-           // Initialize the area entry if it does not exist.
-           if (!results[area]) {
-             results[area] = {
+           // Initialize grouping for this area if it doesn't exist.
+           if (!results[areaName]) {
+             results[areaName] = {
                 totalPopulation: 0,
                 languages: {},
-                type: areaType
+                type: areaType,
+                stateCode: stateCode,
+                districtCode: districtCode
              };
            }
-           // Sum the total population for the area.
-           results[area].totalPopulation += count;
-           // Sum the count for the given language in that area.
-           if (results[area].languages[language]) {
-             results[area].languages[language] += count;
+           // Add count to total population and to the language-specific total.
+           results[areaName].totalPopulation += count;
+           if (results[areaName].languages[language]) {
+             results[areaName].languages[language] += count;
            } else {
-             results[area].languages[language] = count;
+             results[areaName].languages[language] = count;
            }
          }
          
@@ -252,6 +301,23 @@
            var L2Count = languages[L2] || 0;
            var L2Percent = totalPopulation ? ((L2Count / totalPopulation) * 100).toFixed(2) : "0.00";
            
+           // Determine proper names for the modal based on area type.
+           var dispStateName = "";
+           var dispDistrictName = "";
+           if(areaData.type === "State") {
+             // For state rows, the area name is the state name.
+             dispStateName = area;
+             dispDistrictName = "N/A";
+           } else if(areaData.type === "District") {
+             // For district rows, use the state mapping for the state name.
+             dispStateName = stateMapping[areaData.stateCode] || areaData.stateCode;
+             dispDistrictName = area; // Area name holds district name.
+           } else {
+             // For subdistrict rows, look up both state and district names.
+             dispStateName = stateMapping[areaData.stateCode] || areaData.stateCode;
+             dispDistrictName = districtMapping[areaData.districtCode] || areaData.districtCode;
+           }
+           
            allTableData.push({
              area: area,
              population: totalPopulation,
@@ -262,7 +328,9 @@
              L2: L2,
              L2Count: L2Count,
              L2Percent: L2Percent,
-             type: areaData.type
+             type: areaData.type,
+             stateName: dispStateName,
+             districtName: dispDistrictName
            });
          }
          
@@ -292,6 +360,18 @@
          });
       };
       oReq.send();
+      
+      // When an area name is clicked, show the modal with details.
+      $(document).on("click", ".area-info", function(e) {
+        e.preventDefault();
+        var index = $(this).data("index");
+        var item = filteredTableData[index];
+        $("#modalAreaName").text(item.area);
+        $("#modalAreaType").text(item.type);
+        $("#modalStateName").text(item.stateName);
+        $("#modalDistrictName").text(item.districtName);
+        $("#areaModal").modal("show");
+      });
     });
   </script>
 </body>
