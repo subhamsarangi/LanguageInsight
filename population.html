@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Top Two Most Spoken Languages by Area</title>
+  <title>Most Spoken Languages in Odisha</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- DataTables Bootstrap CSS -->
@@ -49,8 +49,11 @@
     }
     /* Multi-select styling */
     #areaFilter {
-      width: auto;
-      display: inline-block;
+      width: 100%;
+    }
+    /* District filter styling */
+    #districtFilter {
+      width: 100%;
     }
     /* Cursor pointer for clickable area name */
     .area-info {
@@ -70,17 +73,33 @@
 
   <div class="container my-4">
     <h1 class="mb-4 text-center">Top Two Most Spoken Languages by Area</h1>
-    <div class="mb-3 text-center">
-      <div class="form-group">
-        <label for="areaFilter"><strong>Select Area Types:</strong></label>
-        <select id="areaFilter" class="form-control" multiple>
-          <option value="State">State</option>
-          <option value="District">District</option>
-          <option value="Subdistrict" selected>Subdistrict</option>
-        </select>
+    <div class="mb-3">
+      <div class="row">
+        <!-- Area Type Multi-select (left) -->
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="areaFilter"><strong>Select Area Types:</strong></label>
+            <select id="areaFilter" class="form-control" multiple>
+              <option value="State">State</option>
+              <option value="District">District</option>
+              <option value="Subdistrict" selected>Subdistrict</option>
+            </select>
+          </div>
+        </div>
+        <!-- District Filter Single-select (right) -->
+        <div class="col-md-6">
+          <div class="form-group" id="districtFilterContainer" style="display:none;">
+            <label for="districtFilter"><strong>Select District:</strong></label>
+            <select id="districtFilter" class="form-control">
+              <!-- Options will be dynamically populated; "All" is default -->
+            </select>
+          </div>
+        </div>
       </div>
-      <button id="downloadJson" class="btn btn-primary mr-2">Download Table as JSON</button>
-      <a id="downloadExcel" href="DDW-C16-STMT-MDDS-2100.XLSX" download class="btn btn-secondary">Download Original Excel</a>
+      <div class="text-center">
+        <button id="downloadJson" class="btn btn-primary mr-2">Download Table as JSON</button>
+        <a id="downloadExcel" href="DDW-C16-STMT-MDDS-2100.XLSX" download class="btn btn-secondary">Download Original Excel</a>
+      </div>
     </div>
     <div class="table-responsive">
       <table id="resultTable" class="table table-bordered table-striped table-hover">
@@ -149,13 +168,13 @@
       var filteredTableData = [];
       
       // Mapping objects for names (from codes)
-      var stateMapping = {};    // key: state code (col B), value: state name (col E) for State rows
-      var districtMapping = {}; // key: district code (col C), value: district name (col E) for District rows
+      var stateMapping = {};    // key: state code (col B), value: state name (col E) for state rows
+      var districtMapping = {}; // key: district code (col C), value: district name (col E) for district rows
 
       // Function to initialize DataTable with pagination size 20
       function initializeDataTable() {
         $("#resultTable").DataTable({
-          "order": [[ 1, "desc" ]], // Default sort: Population descending
+          "order": [[ 1, "desc" ]],
           "pageLength": 20,
           "columnDefs": [
             { "type": "num", "targets": [1, 2, 4, 7, 8] }
@@ -163,19 +182,29 @@
         });
       }
 
-      // Function to populate the table based on the selected filter types
+      // Function to populate the table based on area type and district filter (if applicable)
       function populateTable(filterTypes) {
-        // If DataTable is already initialized, destroy it first.
         if ($.fn.DataTable.isDataTable('#resultTable')) {
           $('#resultTable').DataTable().destroy();
         }
-        // Empty the table body.
         $("#resultTable tbody").empty();
-        // Filter the data.
+        
+        // Filter data by area types.
         filteredTableData = allTableData.filter(function(item) {
           return filterTypes.indexOf(item.type) !== -1;
         });
-        // Append rows for each filtered item. The area name is now a clickable link.
+        
+        // If only Subdistrict is selected and district filter is visible, filter further.
+        if (filterTypes.length === 1 && filterTypes[0] === "Subdistrict" && $("#districtFilterContainer").is(":visible")) {
+          var selectedDistrict = $("#districtFilter").val();
+          if (selectedDistrict && selectedDistrict !== "All") {
+            filteredTableData = filteredTableData.filter(function(item) {
+              return item.districtName === selectedDistrict;
+            });
+          }
+        }
+        
+        // Append rows for each filtered item. Area name is clickable.
         filteredTableData.forEach(function(item, index) {
           var rowHtml = "<tr>" +
             "<td><a href='#' class='area-info' data-index='" + index + "'>" + item.area + "</a></td>" +
@@ -190,11 +219,45 @@
             "</tr>";
           $("#resultTable tbody").append(rowHtml);
         });
-        // Reinitialize DataTable.
         initializeDataTable();
       }
 
-      // Path to the Excel file (it must be in the same folder)
+      // Function to populate the district filter with unique district names from subdistrict rows.
+      function populateDistrictFilter() {
+        var districtSet = new Set();
+        allTableData.forEach(function(item) {
+          if (item.type === "Subdistrict") {
+            districtSet.add(item.districtName);
+          }
+        });
+        var districtArr = Array.from(districtSet).sort();
+        var optionsHtml = "<option value='All'>All</option>";
+        districtArr.forEach(function(district) {
+          optionsHtml += "<option value='" + district + "'>" + district + "</option>";
+        });
+        $("#districtFilter").html(optionsHtml);
+      }
+
+      // When area type multi-select changes.
+      $("#areaFilter").change(function() {
+        var selected = $(this).val() || [];
+        if (selected.length === 1 && selected[0] === "Subdistrict") {
+          $("#districtFilterContainer").show();
+          populateDistrictFilter();
+        } else {
+          $("#districtFilterContainer").hide();
+          $("#districtFilter").val("All");
+        }
+        populateTable(selected);
+      });
+      
+      // When district filter changes.
+      $("#districtFilter").change(function() {
+        var selectedAreaTypes = $("#areaFilter").val() || [];
+        populateTable(selectedAreaTypes);
+      });
+
+      // Path to the Excel file.
       var url = "DDW-C16-STMT-MDDS-2100.XLSX";
       var oReq = new XMLHttpRequest();
       oReq.open("GET", url, true);
@@ -202,25 +265,22 @@
       oReq.onload = function(e) {
          var arraybuffer = oReq.response;
          var data = new Uint8Array(arraybuffer);
-         // Read the workbook
          var workbook = XLSX.read(data, {type:"array"});
          var firstSheetName = workbook.SheetNames[0];
          var worksheet = workbook.Sheets[firstSheetName];
-         // Convert the sheet to JSON with rows as arrays.
          var jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
          
-         // Object to group rows by area name.
+         // Group rows by area name.
          var results = {}; 
-         // Process rows (assume the first row is header, so start at index 1).
          for (var i = 1; i < jsonData.length; i++) {
            var row = jsonData[i];
            // Expected columns:
-           // Column B (index 1): State Code
-           // Column C (index 2): District Code
-           // Column D (index 3): Subdistrict Code
-           // Column E (index 4): Area Name
-           // Column G (index 6): Mother Tongue (with a numeric prefix)
-           // Column H (index 7): Count
+           // Col B (index 1): State Code
+           // Col C (index 2): District Code
+           // Col D (index 3): Subdistrict Code
+           // Col E (index 4): Area Name
+           // Col G (index 6): Mother Tongue (with a numeric prefix)
+           // Col H (index 7): Count
            var stateCode = row[1] || "";
            var districtCode = row[2] ? row[2].toString() : "";
            var subdistrictCode = row[3] ? row[3].toString() : "";
@@ -230,10 +290,7 @@
            
            if (!areaName || !languageRaw) continue;
            
-           // Determine area type:
-           // - State: District Code == "000" and Subdistrict Code == "00000"
-           // - District: Subdistrict Code == "00000" (but not State)
-           // - Subdistrict: otherwise.
+           // Determine area type.
            var areaType = "";
            if(districtCode === "000" && subdistrictCode === "00000") {
              areaType = "State";
@@ -243,25 +300,23 @@
              areaType = "Subdistrict";
            }
            
-           // Build mapping for names:
+           // Build mappings for names.
            if(areaType === "State") {
-             // For state rows, areaName holds the state name.
              stateMapping[stateCode] = areaName;
-           } else if(areaType === "District") {
-             // For district rows, areaName holds the district name.
+           }
+           if(areaType === "District") {
              districtMapping[districtCode] = areaName;
            }
            
-           // Only include rows where language starts with a digit and does not include "Others"
+           // Only include rows where language starts with a digit and doesn't contain "Others"
            if (!/^\d/.test(languageRaw) || languageRaw.toLowerCase().indexOf("others") !== -1) {
              continue;
            }
            
-           // Remove the number prefix. E.g., "1 Assamese" becomes "Assamese".
+           // Remove numeric prefix.
            var langMatch = languageRaw.match(/^\d+\s+(.*)/);
            var language = langMatch ? langMatch[1].trim() : languageRaw.trim();
            
-           // Initialize grouping for this area if it doesn't exist.
            if (!results[areaName]) {
              results[areaName] = {
                 totalPopulation: 0,
@@ -271,7 +326,6 @@
                 districtCode: districtCode
              };
            }
-           // Add count to total population and to the language-specific total.
            results[areaName].totalPopulation += count;
            if (results[areaName].languages[language]) {
              results[areaName].languages[language] += count;
@@ -280,40 +334,32 @@
            }
          }
          
-         // Prepare the final table data array.
+         // Build final table data.
          allTableData = [];
          for (var area in results) {
            var areaData = results[area];
            var totalPopulation = areaData.totalPopulation;
            var languages = areaData.languages;
            var languagesCount = Object.keys(languages).length;
-           
-           // Sort the languages by their count in descending order.
            var sortedLang = Object.keys(languages).sort(function(a, b) {
              return languages[b] - languages[a];
            });
-           
            var L1 = sortedLang[0] || "";
            var L1Count = languages[L1] || 0;
            var L1Percent = totalPopulation ? ((L1Count / totalPopulation) * 100).toFixed(2) : "0.00";
-           
            var L2 = sortedLang[1] || "";
            var L2Count = languages[L2] || 0;
            var L2Percent = totalPopulation ? ((L2Count / totalPopulation) * 100).toFixed(2) : "0.00";
            
-           // Determine proper names for the modal based on area type.
            var dispStateName = "";
            var dispDistrictName = "";
            if(areaData.type === "State") {
-             // For state rows, the area name is the state name.
              dispStateName = area;
              dispDistrictName = "N/A";
            } else if(areaData.type === "District") {
-             // For district rows, use the state mapping for the state name.
              dispStateName = stateMapping[areaData.stateCode] || areaData.stateCode;
-             dispDistrictName = area; // Area name holds district name.
+             dispDistrictName = area;
            } else {
-             // For subdistrict rows, look up both state and district names.
              dispStateName = stateMapping[areaData.stateCode] || areaData.stateCode;
              dispDistrictName = districtMapping[areaData.districtCode] || areaData.districtCode;
            }
@@ -334,21 +380,15 @@
            });
          }
          
-         // Initially populate table with default filter: only Subdistrict
+         // Initially populate table with default filter: Subdistrict.
          populateTable(["Subdistrict"]);
+         // Trigger change event to ensure district filter appears.
+         $("#areaFilter").trigger("change");
          
-         // Bind change event on multi-select field.
-         $("#areaFilter").change(function() {
-           var selected = $(this).val() || [];
-           populateTable(selected);
-         });
-         
-         // Hide loader and re-enable buttons
          $("#loader").fadeOut();
          $("#downloadJson").prop("disabled", false);
          $("#downloadExcel").removeClass("disabled");
          
-         // When the "Download JSON" button is clicked, export the currently displayed table data as JSON.
          $("#downloadJson").click(function() {
            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredTableData, null, 2));
            var downloadAnchorNode = document.createElement('a');
@@ -361,7 +401,7 @@
       };
       oReq.send();
       
-      // When an area name is clicked, show the modal with details.
+      // Modal popup when an area name is clicked.
       $(document).on("click", ".area-info", function(e) {
         e.preventDefault();
         var index = $(this).data("index");
