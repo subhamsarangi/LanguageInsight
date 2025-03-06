@@ -1,0 +1,15 @@
+[
+    {
+      "name": "Odisha",
+      "excelFile": "excel/DDW-C16-STMT-MDDS-2100.XLSX"
+    },
+    {
+      "name": "West Bengal",
+      "excelFile": "excel/WEST_BENGAL.xlsx"
+    },
+    {
+      "name": "Tamil Nadu",
+      "excelFile": "excel/TAMIL_NADU.xlsx"
+    }
+  ]
+  

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= state.name %> Census Data - Top Two Most Spoken Languages by Area</title>
+  
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- DataTables Bootstrap CSS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Google Fonts - SF Pro Text lookalike -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body data-excelfile="/<%= state.excelFile %>">
+  <!-- Elegant Loader -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <p class="loading-text">Loading census data...</p>
+  </div>
+
+  <!-- Background blurred elements -->
+  <div class="bg-blur-element bg-blur-1"></div>
+  <div class="bg-blur-element bg-blur-2"></div>
+  
+  <div class="container my-5">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="content-card">
+          <h1 class="mb-4 text-center"><%= state.name %> Census Data</h1>
+          <p class="lead text-center subtitle">Linguistic diversity across regions</p>
+          
+          <div class="mb-4 filter-section">
+            <div class="row">
+              <!-- Area Type Multi-select (left) -->
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="areaFilter"><strong>Select Area Types</strong></label>
+                  <select id="areaFilter" class="form-control custom-select" multiple>
+                    <option value="State">State</option>
+                    <option value="District">District</option>
+                    <option value="Subdistrict" selected>Subdistrict</option>
+                  </select>
+                </div>
+              </div>
+              <!-- District Filter Single-select (right) -->
+              <div class="col-md-6">
+                <div class="form-group" id="districtFilterContainer" style="display:none;">
+                  <label for="districtFilter"><strong>Select District</strong></label>
+                  <select id="districtFilter" class="form-control custom-select">
+                    <!-- Options will be dynamically populated; "All" is default -->
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center mt-4 mb-3 button-group">
+              <a id="downloadExcel" href="<%= state.excelFile %>" download class="btn btn-secondary">
+                <span class="btn-text">Download Excel</span>
+              </a>
+            </div>
+          </div>
+          
+          <div class="table-card">
+            <div class="table-responsive">
+              <table id="resultTable" class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Area</th>
+                    <th>Population</th>
+                    <th>Languages Count</th>
+                    <th>First Language (L1)</th>
+                    <th>L1#</th>
+                    <th>L1%</th>
+                    <th>Second Language (L2)</th>
+                    <th>L2#</th>
+                    <th>L2%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Table data will be dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Redesigned Modal for Area Details -->
+  <div class="modal fade" id="areaModal" tabindex="-1" role="dialog" aria-labelledby="areaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="areaModalLabel">Area Details</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="area-info-card">
+            <div class="info-row">
+              <div class="info-label">Area Name</div>
+              <div class="info-value" id="modalAreaName"></div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Area Type</div>
+              <div class="info-value" id="modalAreaType"></div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">State</div>
+              <div class="info-value" id="modalStateName"></div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">District</div>
+              <div class="info-value" id="modalDistrictName"></div>
+            </div>
+          </div>
+          
+          <h5 class="mt-4 mb-3">Languages Distribution</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered" id="modalLanguagesTable">
+              <thead>
+                <tr>
+                  <th>Language</th>
+                  <th>Speaker Count</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Languages data will be dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
+  <!-- SheetJS for Excel reading -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Custom JS -->
+  <script src="/js/script.js"></script>
+  <!-- UI Enhancement JS -->
+  <script src="/js/ui.js"></script>
+</body>
+</html>

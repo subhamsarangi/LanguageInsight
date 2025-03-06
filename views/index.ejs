@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>States of India</title>
+  <meta name="description" content="Census data by state for India. Click a state to view detailed language statistics.">
+  <!-- Include your CSS here -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>States of India</h1>
+  <ul>
+    <% states.forEach(state => { %>
+      <li>
+        <a href="/state/<%= state.slug %>"><%= state.name %></a>
+      </li>
+    <% }) %>
+  </ul>
+</body>
+</html>
